@@ -1,6 +1,9 @@
+use std::fmt::Debug;
+
 use bevy::{ecs::system::BoxedSystem, prelude::*};
 
-pub struct CallbackHolder<In = (), Out = ()>(Option<Callback<In, Out>>);
+#[derive(Debug, Default)]
+pub struct CallbackHolder<In: 'static = (), Out: 'static = ()>(Option<Callback<In, Out>>);
 
 impl<In: 'static, Out: 'static> CallbackHolder<In, Out> {
     pub fn new<M>(system: impl IntoSystem<In, Out, M>) -> Self {
@@ -34,6 +37,15 @@ pub struct Callback<In = (), Out = ()> {
     system: BoxedSystem<In, Out>,
 }
 
+impl<In: Debug + 'static, Out: Debug + 'static> Debug for Callback<In, Out> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Callback")
+            .field("initialized", &self.initialized)
+            .field("system", &self.system.name())
+            .finish()
+    }
+}
+
 impl<In: 'static, Out: 'static> Callback<In, Out> {
     pub fn new<M>(system: impl IntoSystem<In, Out, M>) -> Self {
         Self {
@@ -55,7 +67,8 @@ impl<In: 'static, Out: 'static> Callback<In, Out> {
     }
 }
 
-pub struct ROCallbackHolder<In = (), Out = ()>(Option<ROCallback<In, Out>>);
+#[derive(Debug, Default)]
+pub struct ROCallbackHolder<In: 'static = (), Out: 'static = ()>(Option<ROCallback<In, Out>>);
 
 impl<In: 'static, Out: 'static> ROCallbackHolder<In, Out> {
     pub fn new<S, M>(system: S) -> Self
@@ -96,6 +109,15 @@ pub type BoxedROSystem<In, Out> = Box<dyn ReadOnlySystem<In = In, Out = Out>>;
 pub struct ROCallback<In = (), Out = ()> {
     initialized: bool,
     system: BoxedROSystem<In, Out>,
+}
+
+impl<In: Debug + 'static, Out: Debug + 'static> Debug for ROCallback<In, Out> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ROCallback")
+            .field("initialized", &self.initialized)
+            .field("system", &self.system.name())
+            .finish()
+    }
 }
 
 impl<In: 'static, Out: 'static> ROCallback<In, Out> {
